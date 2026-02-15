@@ -6,3 +6,6 @@ output.wav
 *.wav
 *.mp3
 *.m4a
+
+# misc
+temp.txt
