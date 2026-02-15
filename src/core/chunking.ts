@@ -11,7 +11,7 @@ export function chunkText(text: string, chunkSize: number = 2000, overlap: numbe
         return [text];
     }
     
-    const separators = ["\n\n", "\n", ".", "?", "!", " ", ""];
+    const separators = ["\n\n", "\n", ".", "?", "!", " "];
     
     let chunks: string[] = [];
     let start = 0;
@@ -24,16 +24,34 @@ export function chunkText(text: string, chunkSize: number = 2000, overlap: numbe
             break;
         }
         
-        let splitAt = end;
+        let splitAt = -1;
+        const searchStart = Math.max(start, end - Math.floor(chunkSize * 0.2));
+
+        // prefer the right-most separator in the tail window (last 20%).
         for (const sep of separators) {
-            // we look for the separator in the last 20% of the chunk
-            // this is to avoid tiny chunks if a paragraph is way too early.
-            const searchStart = Math.max(start, end - Math.floor(chunkSize * 0.8));
-            let found = text.indexOf(sep, searchStart);
-            if (found !== -1) {
+            const found = text.lastIndexOf(sep, end - 1);
+            if (found >= searchStart && found >= start) {
                 splitAt = found + sep.length;
                 break;
             }
+        }
+
+        // fallback: if no separator exists in the tail window, still avoid splitting
+        // too early by picking the right-most separator before the chunk end.
+        if (splitAt === -1) {
+            for (const sep of separators) {
+                const found = text.lastIndexOf(sep, end - 1);
+                if (found >= start) {
+                    splitAt = found + sep.length;
+                    break;
+                }
+            }
+        }
+
+        // last resort: avoid splitting mid-word by extending to the next space.
+        if (splitAt === -1) {
+            const nextSpace = text.indexOf(" ", end);
+            splitAt = nextSpace === -1 ? text.length : nextSpace + 1;
         }
         
         chunks.push(text.substring(start, splitAt));

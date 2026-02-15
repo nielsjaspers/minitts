@@ -1,15 +1,17 @@
-import { MetaData } from "../core/types";
+import { MetaData, Output } from "../core/types";
 import { DEFAULT_OUTPUT_DIR } from "../core/constants";
+import { mkdir } from "fs/promises";
 
-export async function saveData(metadata: MetaData, outputDir: string = DEFAULT_OUTPUT_DIR): Promise<void> {
-    if (!Bun.file(outputDir).exists()) {
-        await Bun.write(outputDir, "");
-    }
-    
-    const audiofilename = `audio-data.wav`;
-    const textFilename = `text-data.txt`;
-    const now = Date.now();
+export async function saveData(now: number = Date.now(), metadata: MetaData, outputDir: string = DEFAULT_OUTPUT_DIR, chunkIndex?: number): Promise<Output> {
+  const timestampDir = `${outputDir}/${now}`;
 
-    await Bun.write(`${outputDir}/${now}/${textFilename}`, metadata.input);
-    await metadata.audio.save(`${outputDir}/${now}/${audiofilename}`);
+  await mkdir(outputDir, { recursive: true });
+  await mkdir(timestampDir, { recursive: true });
+
+  const textFilePath = `${timestampDir}/text-data.txt`;
+  await Bun.write(textFilePath, metadata.input);
+  await metadata.audio.save(`${timestampDir}/audio-data-${chunkIndex ?? 0}.wav`);
+  return {
+    dir: timestampDir,
+  };
 }
