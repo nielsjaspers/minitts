@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@ungap/compression-stream": "^0.2.0",
+    "kokoro-js": "^1.2.1"
+  }
+}

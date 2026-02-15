@@ -1,0 +1,7 @@
+node_modules
+
+# temp audio files
+output.wav
+*.wav
+*.mp3
+*.m4a
