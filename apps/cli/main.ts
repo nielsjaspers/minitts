@@ -1,23 +1,21 @@
-import { generateAudio, loadModel } from "../../src/tts/tts-engine";
+import { loadModel, streamAudioSegments } from "../../src/tts/tts-engine";
 import { saveData } from "../../src/storage/fs-store";
-import { chunkText } from "../../src/core/chunking";
 import { DEFAULT_OUTPUT_DIR } from "../../src/core/constants";
 
-// const text: string = "Hello, world! This is a test of the Kokoro TTS system.";
 const text = await Bun.file("./temp.txt").text();
 const tts = await loadModel();
-
 const now = Date.now();
-// print all chunks
-console.log(chunkText(text));
-console.log("Total chunks:", chunkText(text).length);
 
-console.log("=====================\n\n");
+let audioIndex = 0;
+console.log(`Starting native stream generation for ${text.length} chars...`);
 
-for (const [index, chunk] of chunkText(text).entries()) {
+for await (const segment of streamAudioSegments(tts, text, { voice: "af_bella", speed: 1 })) {
+  await saveData(now, segment, DEFAULT_OUTPUT_DIR, audioIndex, text);
+  audioIndex++;
 
-    console.log(`Processing chunk ${index+1}/${chunkText(text).length}: ${chunk}`);
-
-    const audio = await generateAudio(tts, chunk);
-    await saveData(now, audio, DEFAULT_OUTPUT_DIR, index);
+  if (audioIndex % 10 === 0) {
+    console.log(`Saved ${audioIndex} streamed segments...`);
+  }
 }
+
+console.log(`Done. Saved ${audioIndex} streamed segment(s) to ${DEFAULT_OUTPUT_DIR}/${now}.`);
