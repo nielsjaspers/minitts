@@ -1,6 +1,6 @@
 import "@ungap/compression-stream/poly";
 import { KokoroTTS, TextSplitterStream } from "kokoro-js";
-import { DEFAULT_DEVICE, DEFAULT_DTYPE, DEFAULT_MODEL } from "../core/constants";
+import { DEFAULT_DEVICE, DEFAULT_DTYPE, DEFAULT_MODEL, DEFAULT_VOICE } from "../core/constants";
 import { MetaData } from "../core/types";
 
 export async function loadModel(modelId: string = DEFAULT_MODEL): Promise<KokoroTTS> {
@@ -11,7 +11,7 @@ export async function loadModel(modelId: string = DEFAULT_MODEL): Promise<Kokoro
   return tts;
 }
 
-export async function generateAudio(tts: KokoroTTS, text: string, voice: string = "af_bella"): Promise<MetaData> {
+export async function generateAudio(tts: KokoroTTS, text: string, voice: string = DEFAULT_VOICE): Promise<MetaData> {
   const audio = await tts.generate(text, {
     voice: voice as any,
   });
@@ -28,7 +28,7 @@ export async function* streamAudioSegments(
 ): AsyncGenerator<MetaData> {
   const splitter = new TextSplitterStream();
   const stream = tts.stream(splitter, {
-    voice: (options.voice ?? "af_bella") as any,
+    voice: (options.voice ?? DEFAULT_VOICE) as any,
     speed: options.speed ?? 1,
   });
 
