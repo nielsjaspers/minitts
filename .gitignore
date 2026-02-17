@@ -9,3 +9,5 @@ output.wav
 
 # misc
 temp.txt
+.DS_Store
+**/.DS_Store
